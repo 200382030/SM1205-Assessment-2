@@ -1,0 +1,443 @@
+---
+title: "SMI205 Replication Project (2023)"
+author: "200382030"
+date: "01/06/2023"
+output: 
+  html_document: 
+    code_download: true
+    toc: true
+    toc_depth: 2
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+---
+
+```{r start, include=FALSE}
+# Opening key libraries first
+library(rmarkdown)
+library(knitr)
+```
+
+# Does the religiosity of the region the interviewer is from affect the interviewer’s’ assessment of respondents’ understanding of survey questions?
+
+### Rpubs link: [copy Rpubs url address here]
+### GitHub Repository: [add url here if you have created a data or code repository, if not delete this line]
+### Study Preregistration form: [copy Rpubs url address here or delete]
+
+## Information about this replication project
+* Replication project based on paper [Zyczynska-Ciolek, D. and Kolczynska, M. (2021) ‘Does Interviewers' Age Affect Their Assessment of Respondents' Understanding of Survey Questions? Evidence From the European Social Survey’, International journal of public opinion research, 33(2), pp. 460–476. doi: 10.1093/ijpor/edaa015. https://academic.oup.com/ijpor/article/33/2/460/5912223?login=true ]
+* Replication method :
+  + Used replication package available at [Zyczynska-Ciolek, D., & Kolczynska, M. (2022, March 25). Does interviewers’ age affect their assessment of respondents’ understanding of survey questions? Evidence from the European Social Survey. Retrieved from osf.io/7urxg https://osf.io/7urxg/]
+  
+## Workspace setup {.tabset .tabset-pills}
+
+### YAML settings
+
+ output: </br>
+  &nbsp; html_document: </br>
+    &nbsp;&nbsp; code_download: true </br>
+    &nbsp;&nbsp;&nbsp; toc: true </br>
+    &nbsp;&nbsp;&nbsp; toc_depth: 2 </br>
+    &nbsp;&nbsp;&nbsp; toc_float: </br>
+      &nbsp;&nbsp;&nbsp;&nbsp; collapsed: false </br>
+      &nbsp;&nbsp;&nbsp;&nbsp; smooth_scroll: true </br>
+
+### Global settings of R chunks
+
+```{r setup, include=TRUE}
+# Global options
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+```
+
+### Libraries
+
+```{r libraries, include=TRUE}
+# All used libraries
+library("rmarkdown")
+library("knitr")
+library("haven")
+library("rio")
+library("essurvey")
+library("lme4")
+library("emmeans")
+library("stargazer")
+library("tidyverse")
+library("fastDummies")
+library("dplyr")
+library("readxl") 
+library("sjPlot")
+```
+
+
+### Versions of used packages
+
+```{r versions, echo=FALSE}
+# Versions of used packages
+packages <- c("rmarkdown", "knitr")
+names(packages) <- packages
+lapply(packages, packageVersion)
+```
+
+### My enviroment
+
+```{r myR, echo=FALSE}
+# What is my R version?
+version[['version.string']]
+```
+
+## 1. Introduction
+
+
+Zyczynska-Clolek and Kolczynska (2021) claim that when controlling at the respondents’ level for ‘cognitive, physical, and psychological functioning’ (Zyczynska-Clolek and Kolczynska, 2021, p.466) and ‘undesirable response styles’ (Zyczynska-Clolek and Kolczynska, 2021, p.466) the younger the interviewer is the stronger the negative effect on the assessment of the respondents’ understanding of survey questions (Zyczynska-Clolek and Kolczynska). This variable is measured on 5-point scale with 5 meaning the interviewer assessed the respondent as understanding the survey questions ‘very often’ (Zyczynska-Clolek and Kolczynska, 2021, p.464) and 1 meaning the interviewer assessed the respondent as understanding the survey questions ‘never’ (Zyczynska-Clolek and Kolczynska, 2021, p.464). 
+However, Zyczynska-Clolek and Kolczynska’s (2021) note that ‘the role of cultural differences’ (Zyczynska-Clolek and Kolczynska, 2021, p.473) still ‘remains to be explored’ (Zyczynska-Clolek and Kolczynska, 2021, p.473). Furthermore, previous research suggests there is a link between culture and its’ influence on the perceptions of older people (North and Fiske, 2018). For example, North and Fiske (2018), argued in their research that European cultures respect older people less so than Eastern cultures. This could mean that countries in the European Social Survey (European Social Survey, 2017), that are in West Asia (e.g., Israel (United Nations, 2023)) may have interviewers’ who rate older respondents understanding of survey questions more favourably than those from Europe – hence culture influencing their world view (Burnham, 2006) and therefore, influencing the way they assess respondents. Adding to this, Fernadez-Ballesteres (2020) reported that 90% (2.s.f.) of the European countries they analysed viewed older people as being friendly rather than being competent. They also reported that countries such as Russia and Romania viewed older people as being competent rather than being friendly (Fernadez-Ballesteres, 2020). This potentially suggests that Eastern European countries like Russia/Romina (United Nations, 2023) may also have cultural influences on perceptions of older people and hence may have interviewers’ who rate older respondents understanding of survey questions more favourably than those from the rest of the continent of Europe. Building on this, White, Muthukrishna, and Norenzayan (2021) found that irrespective of religious beliefs countries which are religious are more culturally similar than those who are not. This potentially suggests that religious countries may share a more similar world view (Burnham, 2006) than to those who are not, for example, White, Muthukrishna, and Norenzayn (2021) found that religious countries have greater ties to family than non-religious countries – this could potentially mean that these countries share a more similar perception of the older generation and hence interviewers’ from these countries may share similar biases when assessing respondents. Ewen, Nikzad-Terhune, and Dassel (2020) also found a link between religious beliefs being an indicator for cultural values around aging. They found that most religious societies are likely to have a positive viewpoint of aging with this being increased when the religiosity at both the induvial and societal level is amplified (Ewen, Nikzad-Terhune, and Dassel, 2020). They compared this to western cultures such as the North and West Europe where countries are more likely to be secular (Coutinho, 2016) and found that these countries are more likely to have a negative perception of aging (Ewen, Nikzad-Terhune, and Dassel, 2020). This potentially suggests that countries with similar levels of religiosity have more similar cultures and hence may have more similar world views when it comes to the perceptions of older people and assessing respondents’ ability to understand survey questions. In addition to this, Coutinho (2016) found that countries in West Asia (United Nations, 2023) such as Turkey have the highest levels of religiosity with some countries from the South of Europe also having very high levels of religiosity such as Kosovo. They found that other countries in South and East Europe (e.g., Greece and Romania), also have fairly high levels of religiosity and that the countries with the lowest levels of religiosity were concentrated in Northern Europe (e.g., Sweden) and Sahgal (2018) found that secularisation is also widespread in Western Europe. This therefore, potentially sets the premise for extending Zyczynska-Clolek and Kolczynska’s (2021) claim stated above as there is potentially an argument that cultural similarities measured via religiosity levels of different regions of the countries in the European Social Survey impacts interviewer’s’ world views around perceptions of aging/older people and hence their bias’s when assessing respondents’ ability to understand survey questions. 
+
+Therefore, this replication project aims to explore the role of cultural differences measured via religiosity at the regional level in affecting interviewers’ assessment of respondents’ understanding of survey questions. Note in order to divide the countries involved in the European Social Survey the United Nations geo-scheme was used – dividing the countries in the dataset into: Northern Europe, Southern Europe, Western Europe, Eastern Europe, and West Asia (United Nations, 2023). It will do this by assessing the following hypothesis: The lesser the religiosity of a country at the regional level, the stronger the negative effect on the variable which measures the interviewers’ assessment of how well a respondent understood the survey questions. 
+
+This replication project will therefore test the robustness of Zyczynska-Clolek and Kolczynska’s (2021) research paper as this replication project will use the same data used to produce the original results but will use a slightly different method (by adding a religiously variable and grouping countries to create a ‘region level’) to investigate a new hypothesis (Freese and Peterson, 2017). 
+
+This replication project expects to find (as pre-registered): The lesser the religiosity of a country at the regional level, the stronger the negative effect on the interviewers’ assessment of how well a respondent understood the survey questions.
+
+
+
+## 2. Data and methods
+
+### 2.1. Data
+
+
+
+Zyczynska-Clolek and Kolczynska (2021) used the data from Wave 8 of the European Social Survey. This dataset was created in 2016 and includes 23 countries (i.e., ‘Austria, Belgium, Czechia, Estonia, Finland, France, Germany, Hungary, Iceland, Ireland, Israel, Italy, Lithuania, the Netherlands, Norway, Poland, Portugal, Russia, Slovenia, Spain, Sweden, Switzerland, and the United Kingdom’(Zyczynska-Clolek and Kolczynska, 2021, p.464.) about their attitudes towards welfare and climate change (European social survey, 2017). The same dataset was used in this replication project and can be found using the following citation: ESS Round 8: European Social Survey Round 8 Data (2016). Data file edition 2.2. Sikt - Norwegian Agency for Shared Services in Education and Research, Norway – Data Archive and distributor of ESS data for ESS ERIC. doi:10.21338/NSD-ESS8-2016. 
+
+```{r loading-data, results='hide'}
+ESS8e02_2 <- read_sav("~/University/Second Year/SMI/Intermediate Research Project in Quantitative Social Science (SMI205)/Assessment 2/Replication Project Data/ESS8e02_2.sav (1)/ESS8e02_2.sav")
+
+ESS8INTe02 <- read_sav("~/University/Second Year/SMI/Intermediate Research Project in Quantitative Social Science (SMI205)/Assessment 2/Replication Project Data/ESS8INTe02.sav (1)/ESS8INTe02.sav")
+```
+
+```{r renaming-data, include=FALSE}
+ess8 <- ESS8e02_2
+interv <- ESS8INTe02 
+```
+
+The sample includes 3,067 interviewers (3,046 after data transformation for both original and this replication paper) and 44,387 respondents (42,724 after data transformation for the original paper and 42,190 for this replication paper) (European Social Survey, 2017; Zyczynska-Clolek and Kolczynska, 2021)). 
+
+This replication project uses the following variables:
+
++   resp_und: the variable which measures the interviewers’ assessment of respondents understanding of survey questions on a 5 point scale (with 5 being the respondent understands the most).
++  agea: the age of the respondents (years)
++  intagea: the age of the interviewers (years)
++  cntry: country
++  lnghom1: language spoken mostly at home by respondent 
++  intlnga: language interview is conducted in
++  sclmeet: how often respondent meets with friends, family, or work colleagues socially 
++  health: self-rated health score (with 1 being the best and 4 the worst)
++  intnum: interviewers’ identification number
++  eisced: highest level of education completed (with 7 being the most educated and 1 being the least)
++  rlgdgr: religiosity of the respondent 
+
+Steps undertaken in data transformation:
+
+1.	Merged the integrated interviewer data file with the integrated file.
+2.	Set all the missing responses to NAs.
+3.	Create a dummy variable for the variable which measures the interviewers’ assessment of respondents understanding of survey questions and name it ‘resp_und’.
+4.	Create age groups for both interviewers and respondents – these variables are named age_i_cat and age_r_cat. 
+5.	Create a dummy variable for if the interview was conducted in the respondents’ language spoken at home and name it ‘homelang’.
+6.	Switching specific values with new values for the following variables: sclmeet (now measured 1-4 and named ‘meetfriends’), health (now measured 4-1 and named ‘srhealth’), eisced (now measured 1-3 and named educ3 (made a factor too) – also created ‘educ’ which measures variable ‘eisced’ 1 -7).
+7.	Separated interviewers identification number from country to create variable ‘int_id’.
+8.	Constructed measures of response styles: non-response (named ‘nonresp’), extreme responses (named ‘ext’), middle responses (named 'mid’), and straightlining (named 'straight’).
+9.	Getting rid of NAs in data.
+10.	Making the respondent level variable ‘rlgdgr’ a country level variable by aggerating it and naming it ‘religion_mean’.
+11.	Categorising the countries into regions (North Europe: Estonia, Finland, UK, Ireland, Iceland, Lithuania, Norway, and Sweden; Eastern Europe: Russia, Poland, Hungary, and Czechia; Southern Europe: Spain, Italy, Portugal, and Slovenia; Western Europe: Netherlands, France, Germany, Switzerland, Belgium, and Austria; West Asia: Israel (United Nations, 2023)) and naming the variable ‘region’. 
+
+```{r data-transformation, results='hide'}
+ess8 <- ess8 %>%
+  zap_labels() %>%
+  full_join(., interv, by = c("idno", "cntry"))
+```
+
+
+```{r data-transformation2, include=FALSE}
+ess_clean <- recode_missings(ess8) %>%
+  mutate(resp_und = ifelse(resundq == 5, 1, 0),
+         age_r_cat = cut(agea, c(15,26,41,56,71,101), right = FALSE),
+         age_i_cat = cut(intagea, c(17,26,41,56,71,90), right = FALSE),
+         homelang = ifelse((cntry == "CH" & lnghom1 == "GSW" & intlnga == "GER") |
+                             intlnga == lnghom1, 1, 0),
+         meetfriends = plyr::mapvalues(sclmeet, c(1,2,3,4,5,6,7,77,88,99),
+                                       c(1,1,2,3,4,5,6,NA,NA,NA)),
+         srhealth = plyr::mapvalues(health, c(1,2,3,4,5,7,8,9),
+                                    c(4,3,2,1,1,NA,NA,NA)),
+         int_id = paste0(cntry, intnum),
+         educ3 = plyr::mapvalues(eisced,
+                                 c(0, 1,2,3,4,5,6,7,55,NA),
+                                 c(NA,1,1,2,2,2,3,3,NA,NA)),
+         educ = plyr::mapvalues(eisced,
+                                c(0, 1,2,3,4,5,6,7,55,NA),
+                                c(NA,1,2,3,4,5,6,7,NA,NA)),
+         female = gndr - 1,
+         educ3 = factor(educ3)) %>%
+  select(idno, int_id, cntry, pspwght, resundq, resclq, resrelq, resbab,
+         resp_und, age_r_cat, age_i_cat, agea, intagea, homelang, female, educ3, educ,
+         meetfriends, srhealth, rlgdgr) 
+```
+
+```{r data-transformation3, include=FALSE}
+
+codebook <- read_excel("~/University/Second Year/SMI/Intermediate Research Project in Quantitative Social Science (SMI205)/Assessment 2/Replication Project Data/codebook.xlsx")
+
+attitudes <- codebook %>%
+  filter(!is.na(group)) %>%
+  select(varname, group) 
+
+scale11 <- codebook %>%
+  filter(length == 11) %>%
+  select(varname)
+
+scale5 <- codebook %>%
+  filter(length == 5) %>%
+  select(varname) 
+
+straight1 <- codebook %>% filter(straight == 1) %>% select(varname)
+straight2 <- codebook %>% filter(straight == 2) %>% select(varname)
+straight3 <- codebook %>% filter(straight == 3) %>% select(varname)
+
+### non-response ------
+ess_clean$nonresp <- ess8 %>%
+  dplyr::select(unique(attitudes$varname)) %>%
+  apply(., 1, function(x)mean(is.na(x))*100)
+
+ess_clean$nonresp_sum <- ess8 %>%
+  dplyr::select(unique(attitudes$varname)) %>%
+  apply(., 1, function(x)mean(is.na(x)))
+
+### Middle category -----
+ess_clean$mid11 <- ess8 %>%
+  dplyr::select(unique(scale11$varname)) %>%
+  mutate_all(funs(as.numeric(ifelse(is.na(.), 99, .) == 5))) %>%
+  apply(., 1, function(x) mean(x)*100)
+
+ess_clean$mid5 <- ess8 %>%
+  dplyr::select(unique(scale5$varname)) %>%
+  mutate_all(funs(as.numeric(ifelse(is.na(.), 99, .) == 3))) %>%
+  apply(., 1, function(x) mean(x)*100)
+
+ess_clean$mid <- (ess_clean$mid11 * 38 + ess_clean$mid5 * 29)/67
+
+### Extreme category ------
+ess_clean$ext11 <- ess8 %>%
+  dplyr::select(unique(scale11$varname)) %>%
+  mutate_all(funs(as.numeric(ifelse(is.na(.), 99, .) %in% c(0, 10)))) %>%
+  apply(., 1, function(x) mean(x)*100)
+
+ess_clean$ext5 <- ess8 %>%
+  dplyr::select(unique(scale5$varname)) %>%
+  mutate_all(funs(as.numeric(ifelse(is.na(.), 99, .) %in% c(1, 5)))) %>%
+  apply(., 1, function(x) mean(x)*100)
+
+ess_clean$ext <- (ess_clean$ext11 * 38 + ess_clean$ext5 * 29) / 67
+
+### straight lining -------
+ess_clean$straight1 <- t(apply(ess8 %>%
+                                 dplyr::select(straight1$varname), 1, diff)) %>%
+  data.frame() %>%
+  apply(., 1, function(x) mean(abs(x), na.rm = TRUE))
+
+ess_clean$straight2 <- t(apply(ess8 %>%
+                                 dplyr::select(straight2$varname), 1, diff)) %>%
+  data.frame() %>%
+  apply(., 1, function(x) mean(abs(x), na.rm = TRUE))
+
+ess_clean$straight3 <- t(apply(ess8 %>%
+                                 dplyr::select(straight3$varname), 1, diff)) %>%
+  data.frame() %>%
+  apply(., 1, function(x) mean(abs(x), na.rm = TRUE))
+
+ess_clean$straight <- (ess_clean$straight1 + ess_clean$straight2 + ess_clean$straight3)/3
+```
+
+```{r data-transformation4, include=FALSE}
+### Getting rid of NAs in ess_clean data
+data_omit2 <- na.omit(ess_clean)
+```
+
+```{r data-transformation5, results='hide'}
+### Making the individual level variable 'How religious are you?' a country level variable by using the assregation method
+religion <- aggregate(rlgdgr~cntry,data_omit2,mean)
+
+names(religion)[names(religion) == "rlgdgr"] <- "religion_mean" #renaming variable
+
+jointdataset <- merge(data_omit2, religion, by = 'cntry')
+```
+
+```{r data-transformation6, results='hide'}
+### Putting countries into regions ------
+jointdataset$region <- recode(jointdataset$cntry, AT = "western", BE = "western", CH = "western", CZ = "eastern", DE = "western", EE = "northern", 
+                               ES = "southern", FI = "northern", FR = "western", GB = "northern", HU = "eastern", IE = "northern", IS = "northern", 
+                               IL = "w_aisa", IT = "southern", LT = "northern", NL = "western", NO = "northern", PL = "eastern", PT = "southern", 
+                               RU = "eastern", SE = "northern", SI = "southern")
+```
+
+
+```{r exporting-data, include=FALSE}
+rep_final_data <- jointdataset
+
+export(rep_final_data, "rep_final_data.csv") 
+```
+
+
+```{r Summary-Statistics, echo=FALSE}
+#### visualising understanding per region ------
+box2 <- ggplot(rep_final_data, aes(x=factor(region), y=resundq))+
+  geom_boxplot()+
+  theme( legend.position = "none" ) + 
+  ggtitle("Average respondnets' understanding score given by interviewers per region") +
+  scale_x_discrete(labels = c("Eastern Europe", "Northern Europe", "Southern Europe", "West Aisa", "Western Europe"))
+
+box2 + labs(x = "Region", y = "Average respondnets' understanding score given by interviewers")
+
+```
+
+
+Boxplot 1.1: Northern, Eastern, Southern, and Western Europe all have the same means (around 5) and distributions (interquartile range of 1). This suggests there is little variance in respondents understanding survey questions score amongst Europe. This could be due to there only being 23 countries in the sample – maybe more variances would be seen if more countries were included. West Asia has the lowest mean respondents understanding score (4) and the highest interquartile range (2). This suggests that in West Asia interviewers on average score respondents understanding of survey questions to be lower than Europe. This goes against what was expected in the pre-registration form. However, this could be because this sample only included Israel in West Asia (hence this is not representative of West Asia) as no data was available for other countries in West Asia such as Turkey. 
+
+
+### 2.2. Methods
+
+The original paper used a 3 level multi-level model (respondents nested in interviewers nested in countries) with random intercepts at the interviewer and country level (Zyczynska-Clolek and Kolczynska, 2021). This model described is model 5 in the paper:
+
++  The dependent variable in this model is interviewers’ assessment of respondents’ understanding of survey questions.
++ The main independent variables are the age of the interviewer and respondent.
++  They control for respondents’ level for ‘cognitive, physical, and psychological functioning’ (Zyczynska-Clolek and Kolczynska, 2021, p.466) and ‘undesirable response styles’ (Zyczynska-Clolek and Kolczynska, 2021, p.466). 
+
+This replication project will use the same method but change two aspects:
+
++  Will use a ‘region’ level rather than a country level to account for the fact that those from similar regions are more likely to be similar than those from other regions due to religious similarities (White, Muthukrisha, and Norenzayan, 2021). 
++ 	Will add the region level variable ‘religiosity’ to account for the impact that religion plays in influencing different cultural values, which may influence the way interviewers interpret respondents understanding of survey questions (Ewen, Nikzad-Terhune, and Dassel, 2020). 
+
+
+
+## 3. Results
+
+```{r Multi-level-models1, include=FALSE}
+### Multi-level models --------
+m0 <- lmer(resundq ~ 1 +(1 | int_id) + (1 | region),
+           weights = pspwght, data = rep_final_data) #model 0
+
+summary(m0)
+
+m1 <- lmer(resundq ~ 1 + age_r_cat + (1 | int_id) + (1 | region),
+           weights = pspwght, data = rep_final_data) #mode 1 - adding age of respondnets
+
+m2 <- lmer(resundq ~ 1 + age_r_cat + factor(educ3) + (1 | int_id) + (1 | region),
+           weights = pspwght, data = rep_final_data) #model 2 adding education
+
+m3 <- lmer(resundq ~ 1 + age_r_cat + factor(educ3)+ homelang + factor(meetfriends) + factor(srhealth) + (1 | int_id) + (1 | region),
+           weights = pspwght, data = rep_final_data)
+
+m4 <- lmer(resundq ~ 1 + age_r_cat + factor(educ3) + homelang + 
+             factor(meetfriends) + factor(srhealth) + 
+             nonresp + ext + mid + straight +
+             (1 | int_id) + (1 | region),
+           weights = pspwght, data = rep_final_data)
+
+m5 <- lmer(resundq ~ 1 + age_r_cat + age_i_cat + factor(educ3) + 
+             homelang + factor(meetfriends) + factor(srhealth) + 
+             nonresp + ext + mid + straight + 
+             (1 | int_id) + (1 | region),
+           weights = pspwght, data = rep_final_data)
+
+ m7 <- lmer(resundq ~ 1 + age_r_cat + age_i_cat + factor(educ3) + 
+              homelang + factor(meetfriends) + factor(srhealth) + 
+              nonresp + ext + mid + straight + 
+              (1 | int_id) + (1 | cntry),
+            weights = pspwght, data = rep_final_data) ## original model
+```
+
+```{r multi-level-model2, results='hide'}
+m6 <- lmer(resundq ~ 1 + age_r_cat + age_i_cat + factor(educ3) + 
+             homelang + factor(meetfriends) + factor(srhealth) + 
+             nonresp + ext + mid + straight + religion_mean + 
+             (1 | int_id) + (1 | region),
+           weights = pspwght, data = rep_final_data) 
+ summary(m6)
+```
+
+```{r table, echo=FALSE}
+
+tab_model(m6,
+          pred.labels = c("Intercept", "Respondent's aged 26 - 40", "Respondent's aged 41 - 55",
+                          "Respondent's aged 56 - 70", "Respondent's aged 71 - 100", "Interviewer's aged 26 - 40", "Interviewer's aged 41 - 55", "Interviewer's aged 56 - 70", "Interviewer's aged 71 - 89", 
+                          "Completed up to Secondary and Post-secondary non-tertiary Education", "Completed up Tertiary Education", "Language match", 
+                          "Meets friends once a month", "Meets friends several times a month", "Meets friends once a week", "Meets friends several times a week", "Meets friends every day", 
+                          "Fair health", "Good Health", "Very good health", "Item non-response", 
+                          "Extreme Categories", "Middle Categories", "Straightlining", "Average faith of a country"),
+          dv.labels = c("Interviewers' assessment of respondents' understanding of survey questions")) 
+
+```
+
+Table 1.1 shows the results of the revised multi-level model described above.
+
+The results of the multi-level model created for this replication project are mostly the same as the results found in the original paper written by Zyczynska-Clolek and Kolczynska (2021) have mostly the same coefficient estimates as this replicated model. However, it is important to note that all of the coefficient estimates for the predictor variable ‘age of the interviewer’ have slightly increased. For example, in the original paper the coefficient estimates for interviewers aged 26-40 years is 0.13 (2.s.f.) (Zyczynska-Clolek and Kolczynska, 2021, p.469.), whereas in the replicated model this has increased to 0.16. The same pattern can also be seen for the coefficient estimates for interviewers aged 71-89 years as in the original paper the coefficient estimate was 0.33 (2.s.f.) (Zyczynska-Clolek and Kolczynska, 2021, p.469.), whereas in the replicated model this has increased to 0.37. However, the general pattern is still the same as the interpretation of these coefficient estimates mean that for interviewers aged 26-40 years their assessment of respondents understanding of survey questions increases by 0.16 points for every yearly increase, whereas for interviewers aged 71-89 years this increases by 0.37 points for every yearly increase. This still proves Zyczynska-Clolek and Kolczynska’s (2021) claim that the younger the interviewer is the stronger the negative effect on the variable which measures the interviewers’ assessment of how well a respondent understood the survey questions. It is important to note that the coefficient estimates for other predictor variables such as response styles also changed from the original model but kept the same pattern. This likely due to the added variable of ‘religiosity’ in the replicated model.
+
+In addition to this, when average religiosity of a country increases by one scale point the average decrease in interviewers’ assessment of respondents understanding of survey questions is 0.01 (when all other variables are held constant). This goes against the predicted results pre-registered, which predicted that religiosity would have a positive effect on the interviewers’ assessment of respondents understanding of survey questions. This could be because many of the countries mentioned to have high levels of religiosity in the literature e.g., Turkey, Kosovo, and Greece were not included in the sample of data used (Coutinho, 2016) and therefore different results may have been found if a more suitable dataset was used that included these samples. Furthermore, the coefficient estimate for religiosity found by this model is statistically insignificant as the p-value (0.264) is less than the significance level of 0.05. This suggests that religiosity of a country is not a statistically significant predictor variable of interviewers’ assessment of respondents understanding of survey questions. 
+
+Furthermore, as religiosity is not a statistically significant predictor variable of interviewers’ assessment of respondents understanding of survey questions it maybe better to remove it from the model as it may be causing the model to be over-fitted and hence less reliable. 
+
+When compared to the same model without it as a predictor the model was reported to be a better fit, hence suggesting it is better to leave religiosity out of a revised model. 
+```{r commparing-models, results='hide'}
+### Fit of model 5 vs model 6 comparing region model to new model ------
+anova(m5, m6, refit=FALSE)
+```
+
+
+
+
+## 4. Conclusions
+
+In conclusion, the lesser the religiosity of a country at the regional level did not have a negative effect on interviewers’ assessment of respondents’ understanding of survey questions but rather a positive one. However, it is important to note that this positive effect is statistically insignificant and hence religiosity of a country at the regional level can not be used as a predictor of interviewers’ assessment of respondents’ understanding of survey questions. This might be because many of the countries mentioned to have high levels of religiosity in the literature e.g., Kosovo, were not included in the sample used (Coutinho, 2016) and therefore different results may have been found if a more suitable dataset was used. In addition to this, the statement that White, Muthukrishna, and Norenzayan (2021) made about religion creating cultural similarities may not be true for the countries grouped together in this replication project as it might be other cultural factors that make them similar rather than religion. Therefore, if this replication was to be done again it may be useful to use another variable instead of religiosity at the regional level to measure cultural differences such as differences when it comes to treating older generations.
+
+
+## References
+
+Burnham, D. (2006) An introduction to Kant's Critique of judgement. Edinburgh: Edinburgh University Press.
+
+Coutinho, J. P. (2016) ‘Religiosity in Europe: an index, factors, and clusters of religiosity’, Sociologia (Lisbon, Portugal), 81(81), pp. 163–188. doi: 10.7458/SPP2016816251.
+
+European Social Survey (ESS) (2017) ESS round 8 - 2016. Welfare attitudes, Attitudes to climate change. Available at: Search European Social Survey (nsd.no) (Accessed: 25th May 2023).
+
+Ewen, H. H., Nikzad-Terhune, K. and Dassel, K. B. (2020) ‘Exploring beliefs about aging and faith: Development of the judeo-christian religious beliefs and aging scale’, Behavioral sciences, 10(9), p. 139. doi: 10.3390/BS10090139.
+
+Fernández-Ballesteros, R. et al. (2020) ‘Cultural aging stereotypes in European Countries: Are they a risk to Active Aging?’, PloS one, 15(5), pp. e0232340–e0232340. doi: 10.1371/journal.pone.0232340.
+
+Freese, J. and Peterson, D. (2017) ‘Replication in Social Science’, Annual review of sociology, 43(1), pp. 147–165. doi: 10.1146/annurev-soc-060116-053450.
+
+North, M. S. and Fiske, S. T. (2015) ‘Modern Attitudes Toward Older Adults in the Aging World: A Cross-Cultural Meta-Analysis’, Psychological bulletin, 141(5), pp. 993–1021. doi: 10.1037/a0039469.
+
+Sahgal, N. (2018) ‘Pew Research Center: Being Christian in Western Europe’, LSE Religion and Global Society Blog, 5th June. Available at: https://blogs.lse.ac.uk/religionglobalsociety/2018/06/pew-research-center-being-christian-in-western-europe/ (Accessed: 26th May 2023)
+
+United Nations (2023) Methodology. Available at: UNSD — Methodology  (Accessed: 25th May 2023)
+
+White, C. J. M., Muthukrishna, M. and Norenzayan, A. (2021) ‘Cultural similarity among coreligionists within and between countries’, Proceedings of the National Academy of Sciences - PNAS, 118(37), p. 1. doi: 10.1073/pnas.2109650118.
+
+Zyczynska-Ciolek, D. and Kolczynska, M. (2021) ‘Does Interviewers' Age Affect Their Assessment of Respondents' Understanding of Survey Questions? Evidence From the European Social Survey’, International journal of public opinion research, 33(2), pp. 460–476. doi: 10.1093/ijpor/edaa015.
+
+Zyczynska-Ciolek, D., & Kolczynska, M. (2022, March 25). Does interviewers’ age affect their assessment of respondents’ understanding of survey questions? Evidence from the European Social Survey. Retrieved from osf.io/7urxg 
+
+
+
+## Appendix
+
+### Appendix 1. My enviroment (full information) 
+
+```{r session}
+# Detailed information about my environment
+sessionInfo()
+```
+
+### Appendix 2. Entire R code used in the project
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
